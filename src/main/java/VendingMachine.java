@@ -1,135 +1,58 @@
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 
 public class VendingMachine {
 
-    private HashMap<String, ArrayList<String>> products;
-    private HashMap<String, ArrayList<Integer>> amount;
-    private HashMap<String, ArrayList<Double>> prices;
+    private final ProductRepository productRepository;
+    private final StockRepository stockRepository;
+    private final PriceRepository priceRepository;
+    private Map<String, ArrayList<String>> products;
+    private Map<String, ArrayList<Integer>> stock;
+    private Map<String, ArrayList<Double>> prices;
 
 
-    public VendingMachine() {
-        products = new HashMap<>();
-        products.put("A", new ArrayList<String>() {{
-            add("Yellow Monster");add("Yellow Monster");add("Black Monster");add("White Monster");add("White Monster");
-        }});
-        products.put("B", new ArrayList<String>() {{
-            add("Blue Monster");add("Yellow Monster");add("Black Monster");add("Black Monster");add("White Monster");
-        }});
-        products.put("C", new ArrayList<String>() {{
-            add("Yellow Monster");add("Blue Monster");add("Blue Monster");add("Yellow Monster");add("White Monster");
-        }});
-        products.put("D", new ArrayList<String>() {{
-            add("Rock Star");add("Rock Star");add("Rock Star");add("Rock Star");add("Rock Star");
-        }});
-        products.put("E", new ArrayList<String>() {{
-            add("Red Bull");add("Red Bull");add("Black Monster");add("Red Bull");add("Red Bull");
-        }});
-        products.put("F", new ArrayList<String>() {{
-            add("Black Burn");add("Black Burn");add("Blue Burn");add("Blue Burn");add("Blue Burn");
-        }});
-        products.put("G", new ArrayList<String>() {{
-            add("Red Burn");add("Red Burn");add("Red Burn");add("Blue Burn");add("Blue Burn");
-        }});
-        products.put("H", new ArrayList<String>() {{
-            add("Yellow Burn");add("Yellow Burn");add("Yellow Burn");add("Blue Burn");add("Blue Burn");
-        }});
+    public VendingMachine(ProductRepository productRepository, StockRepository stockRepository, PriceRepository priceRepository) {
+        this.productRepository = productRepository;
+        this.stockRepository = stockRepository;
+        this.priceRepository = priceRepository;
 
-        amount = new HashMap<>();
-        amount.put("A", new ArrayList<Integer>() {{
-            add(1);add(2);add(6);add(4);add(3);
-        }});
-        amount.put("B", new ArrayList<Integer>() {{
-            add(1);add(5);add(6);add(1);add(3);
-        }});
-        amount.put("C", new ArrayList<Integer>() {{
-            add(2);add(5);add(3);add(4);add(3);
-        }});
-        amount.put("D", new ArrayList<Integer>() {{
-            add(3);add(5);add(6);add(4);add(3);
-        }});
-        amount.put("E", new ArrayList<Integer>() {{
-            add(4);add(5);add(3);add(4);add(3);
-        }});
-        amount.put("F", new ArrayList<Integer>() {{
-            add(1);add(5);add(6);add(4);add(3);
-        }});
-        amount.put("G", new ArrayList<Integer>() {{
-            add(5);add(5);add(3);add(4);add(2);
-        }});
-        amount.put("H", new ArrayList<Integer>() {{
-            add(1);add(5);add(6);add(4);add(3);
-        }});
-
-        prices = new HashMap<>();
-        prices.put("A", new ArrayList<Double>() {{
-            add(2.80);add(2.80);add(2.90);add(3.0);add(3.0);
-        }});
-        prices.put("B", new ArrayList<Double>() {{
-            add(2.90);add(2.80);add(2.90);add(2.90);add(3.0);
-        }});
-        prices.put("C", new ArrayList<Double>() {{
-            add(2.80);add(2.80);add(3.00);add(2.80);add(3.0);
-        }});
-        prices.put("D", new ArrayList<Double>() {{
-            add(2.50);add(2.50);add(2.50);add(2.50);add(2.60);
-        }});
-        prices.put("E", new ArrayList<Double>() {{
-            add(3.50);add(3.50);add(3.50);add(3.50);add(3.50);
-        }});
-        prices.put("F", new ArrayList<Double>() {{
-            add(3.0);add(3.0);add(3.0);add(3.0);add(3.0);
-        }});
-        prices.put("G", new ArrayList<Double>() {{
-            add(3.0);add(3.0);add(3.0);add(3.0);add(3.0);
-        }});
-        prices.put("H", new ArrayList<Double>() {{
-            add(3.0);add(3.0);add(3.0);add(3.0);add(3.0);
-        }});
+        products = this.productRepository.findAll();
+        stock = this.stockRepository.findAll();
+        prices = this.priceRepository.findAll();
     }
 
-    public String fetch(double money, String code) {
-        String l = "NONE";
-        String c = "NONE";
-        for (int i = 0; i < code.length(); i++) {
-            if (i == 0) {
-                l = String.valueOf(code.charAt(i));
-            } else {
-                c = String.valueOf(code.charAt(i));
-            }
-        }
-        if (prices.containsKey(l)) {
-            double value = prices.get(l).get(Integer.valueOf(c));
-            if (value < money) {
-                int lf = amount.get(l).get(Integer.valueOf(c));
-                if (lf > 0) {
-                    Integer a = amount.get(l).get(Integer.valueOf(c));
-                    amount.get(l).set(Integer.valueOf(c), a - 1);
+    public String sellProduct(double money, String code) {
+        Slot slot = new Slot(code);
+        String row = slot.getRow();
+        String column = slot.getColumn();
 
-                    return products.get(l).get(Integer.valueOf(c));
-                } else {
-                    return "There are no products for code";
-                }
+        if (!prices.containsKey(row)) {
+            return "Does not exists that code";
+        }
+
+        double value = prices.get(row).get(Integer.valueOf(column));
+        if (value <= money) {
+            int lf = stock.get(row).get(Integer.valueOf(column));
+            if (lf > 0) {
+                Integer a = stock.get(row).get(Integer.valueOf(column));
+                stock.get(row).set(Integer.valueOf(column), a - 1);
+
+                return products.get(row).get(Integer.valueOf(column));
             } else {
-                return "Put more money!";
+                return "There are no products for code";
             }
         } else {
-            return "Does not exists that code";
+            return "Put more money!";
         }
     }
 
     public double returnChange(double money, String code) {
-        String l = "NONE";
-        String c = "NONE";
-        for (int i = 0; i < code.length(); i++) {
-            if (i == 0) {
-                l = String.valueOf(code.charAt(i));
-            } else {
-                c = String.valueOf(code.charAt(i));
-            }
-        }
-        if (prices.containsKey(l)) {
-            double value = prices.get(l).get(Integer.valueOf(c));
+        Slot slot = new Slot(code);
+        String row = slot.getRow();
+        String column = slot.getColumn();
+
+        if (prices.containsKey(row)) {
+            double value = prices.get(row).get(Integer.valueOf(column));
             return money - value;
         } else {
             return 0;
@@ -137,19 +60,39 @@ public class VendingMachine {
     }
 
     public double price(String code) {
-        String l = "NONE";
-        String c = "NONE";
-        for (int i = 0; i < code.length(); i++) {
-            if (i == 0) {
-                l = String.valueOf(code.charAt(i));
-            } else {
-                c = String.valueOf(code.charAt(i));
-            }
-        }
-        if (prices.containsKey(l)) {
-            return prices.get(l).get(Integer.valueOf(c));
+        Slot slot = new Slot(code);
+        String row = slot.getRow();
+        String column = slot.getColumn();
+
+        if (prices.containsKey(row)) {
+            return prices.get(row).get(Integer.valueOf(column));
         } else {
             return 0;
+        }
+    }
+
+    private class Slot {
+        private String row;
+        private String column;
+
+        public Slot(String code) {
+            row = "NONE";
+            column = "NONE";
+            for (int i = 0; i < code.length(); i++) {
+                if (i == 0) {
+                    row = String.valueOf(code.charAt(i));
+                } else {
+                    column = String.valueOf(code.charAt(i));
+                }
+            }
+        }
+
+        public String getRow() {
+            return row;
+        }
+
+        public String getColumn() {
+            return column;
         }
     }
 }
