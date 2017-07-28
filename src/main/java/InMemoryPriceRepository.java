@@ -4,11 +4,10 @@ import java.util.Map;
 
 public class InMemoryPriceRepository implements PriceRepository {
 
-
   private HashMap prices;
 
   @Override
-  public Map findAll() {
+  public Map<String, ArrayList<Double>> findAll() {
 
     prices = new HashMap<>();
     prices.put("A", new ArrayList<Double>() {{

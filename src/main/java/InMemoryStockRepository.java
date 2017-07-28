@@ -2,14 +2,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by fabrizio.dinapoli on 28/7/17.
- */
 public class InMemoryStockRepository implements StockRepository {
+
   private HashMap stock;
 
   @Override
-  public Map findAll() {
+  public Map<String, ArrayList<Integer>> findAll() {
     stock = new HashMap<>();
     stock.put("A", new ArrayList<Integer>() {{
       add(1);

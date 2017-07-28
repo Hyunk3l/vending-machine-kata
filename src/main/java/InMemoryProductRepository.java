@@ -5,7 +5,7 @@ import java.util.Map;
 public class InMemoryProductRepository implements ProductRepository {
 
   @Override
-  public Map findAll() {
+  public Map<String, ArrayList<String>> findAll() {
     Map products = new HashMap<>();
     products.put("A", new ArrayList<String>() {{
       add("Yellow Monster");
